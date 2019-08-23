@@ -1,16 +1,25 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '2.1.6.RELEASE'
 }
+
+apply plugin: 'io.spring.dependency-management'
 
 group 'linear-kalman-filter'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 
+ext {
+    set('springVersion', 'Greenwich.RELEASE')
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    compile "org.springframework.boot:spring-boot-starter-web"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
