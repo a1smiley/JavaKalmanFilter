@@ -1,3 +1,9 @@
+# Intellij project folder
+.idea
+
+# Gradle project folder
+.gradle
+
 # Compiled class file
 *.class
 
