@@ -13,12 +13,9 @@ public class State {
     public State(double[] initialState) {
         this.statePrediction = initialState;
         this.stateEstimate = initialState;
-        DoubleArray initialStateForStorage = new DoubleArray(initialState);
-        predictionHistory.put(timeStep, initialStateForStorage);
-        estimateHistory.put(timeStep, initialStateForStorage);
     }
 
-    public void storeStatePrediction(double[] newStatePrediction) throws KalmanFilterException {
+    public void updateStatePrediction(double[] newStatePrediction) throws KalmanFilterException {
         if (noPredictionStoredForCurrentTimeStep()) {
             this.statePrediction = newStatePrediction;
             predictionHistory.put(timeStep, new DoubleArray(newStatePrediction));
@@ -27,13 +24,17 @@ public class State {
         }
     }
 
-    public void storeStateEstimate(double[] newStateEstimate) throws KalmanFilterException {
+    public void updateStateEstimate(double[] newStateEstimate) throws KalmanFilterException {
         if (noEstimateStoredForCurrentTimeStep()) {
             this.stateEstimate = newStateEstimate;
             estimateHistory.put(timeStep, new DoubleArray(newStateEstimate));
         } else {
             throw new KalmanFilterException();
         }
+    }
+
+    public void incrementTimeStep() {
+        timeStep++;
     }
 
     private boolean noPredictionStoredForCurrentTimeStep() {
