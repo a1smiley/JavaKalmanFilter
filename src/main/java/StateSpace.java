@@ -1,28 +1,78 @@
 public class StateSpace {
 
-    public double[][] Amat;
+    private double[][] Amat;
     private int nPoles;
-    public double[] Bmat;
-    public double[] Cmat;
-    public double Dmat = 0;
+    private double[] Bmat;
+    private double[] Cmat;
+    private double Dmat = 0;
+    private double[] processNoise;
+    private double[] measurementNoise;
     private State state;
 
     public StateSpace(double[] stateTransitionPoles, double[] stateTransitionB,
-                      double[] outputTransitionC, double outputTransitionD, State state) throws KalmanFilterException {
+                      double[] outputTransitionC, double outputTransitionD, double[] processNoise,
+                      double[] measurementNoise, State state) throws KalmanFilterException {
         Amat = expandPolesToStateTransitionMatrix(stateTransitionPoles);
         Bmat = validateBmat(stateTransitionB);
         Cmat = validateCmat(outputTransitionC);
         Dmat = validateDmat(outputTransitionD);
+        this.processNoise = processNoise;
+        this.measurementNoise = measurementNoise;
         this.state = state;
     }
 
-    public void transitionStateEstimate(double input) throws KalmanFilterException {
+    public void updateStatePrediction(double input) throws KalmanFilterException {
         double[] stateEstimate = state.getStateEstimate();
         double[] newStatePrediction = new double[nPoles];
         for (int i = 0; i < nPoles; i++){
             newStatePrediction[i] = Amat[i][i] * stateEstimate[i] + Bmat[i] * input;
         }
         state.updateStatePrediction(newStatePrediction);
+    }
+
+    public void updateCovariancePrediction() throws KalmanFilterException {
+        double[][] noiseFreeCovPrediction = matrixTransform(Amat, state.getCovarianceEstimate());
+        double[][] newCovPrediction = matrixSum(noiseFreeCovPrediction, processNoise);
+        state.updateCovariancePrediction(newCovPrediction);
+    }
+
+    public double generateOutputPrediction(double input) {
+        double[] statePrediction = state.getStatePrediction();
+        double newOutputPrediction = 0;
+        for (int i = 0; i < nPoles; i++){
+            newOutputPrediction = newOutputPrediction + (Cmat[i] * statePrediction[i]);
+        }
+        return newOutputPrediction + Dmat * input;
+    }
+
+    public double[] generateKalmanGainMatrix(){
+        double[][] covPrediction = state.getCovariancePrediction();
+        double[][] leadingTerm = matrixMultiply(covPrediction, matrixTranspose(Cmat));
+        double[][] trailingTerm = matrixInverse(matrixSum(matrixTransform(Cmat, covPrediction), measurementNoise));
+        return matrixMultiply(leadingTerm, trailingTerm);
+    }
+
+    public void updateStateEstimate(double outputPrediction, double[] gainMatrix) throws KalmanFilterException{
+        double[] newStateEstimate = new double[nPoles];
+        double[] statePrediction = state.getStatePrediction();
+        for (int i = 0; i < nPoles; i++){
+            newStateEstimate[i] = statePrediction[i] + (gainMatrix[i] * outputPrediction);
+        }
+        state.updateStateEstimate(newStateEstimate);
+    }
+
+    public void updateCovarianceEstimate(double[] gainMatrix) {
+        double[][] covPrediction = state.getCovariancePrediction();
+        double[][] innerTerm = matrixDifference(matrixIdentity(nPoles), matrixMultiply(gainMatrix, Cmat));
+        state.updateCovarianceEstimate(matrixMultiply(innerTerm, covPrediction));
+    }
+
+    public void incrementTimeStep() {
+        state.incrementTimeStep();
+    }
+
+    public EstimateTimeSeries getStateHistory(){
+        return state.getStateHistory();
     }
 
     private double[][] expandPolesToStateTransitionMatrix(double[] poles){

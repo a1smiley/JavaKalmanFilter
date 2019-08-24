@@ -14,11 +14,11 @@ public class MeasurementSet {
         this.validatedOutputMeasurements =  unvalidatedOutputMeasurements;
     }
 
-    public double[] getInputMeasurements() {
-        return validatedInputMeasurements;
+    public double getInputMeasurement(int timeStep) {
+        return validatedInputMeasurements[timeStep];
     }
 
-    public double[] getOutputMeasurements() {
-        return validatedOutputMeasurements;
+    public double getOutputMeasurement(int timeStep) {
+        return validatedOutputMeasurements[timeStep];
     }
 }

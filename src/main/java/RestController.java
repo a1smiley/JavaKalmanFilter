@@ -10,13 +10,11 @@ public class RestController {
     LinearKalmanFilter linearKF;
 
     @PutMapping("kalmanfilter/setup")
-    public ResponseEntity kalmanFilterSetup(double[] stateTransitionPoles,
-                                            double[] stateTransitionB,
-                                            double[] outputTransitionC,
-                                            double ouputTransitionD,
-                                            double[] initialState) {
+    public ResponseEntity kalmanFilterSetup(double[] stateTransitionPoles, double[] stateTransitionB,
+                                            double[] outputTransitionC, double ouputTransitionD, double[] initialState,
+                                            double[][] initialCovariance) {
         try {
-            State state = new State(initialState);
+            State state = new State(initialState, initialCovariance);
             StateSpace stateSpace = new StateSpace(stateTransitionPoles, stateTransitionB, outputTransitionC, ouputTransitionD, state);
             linearKF.setSystemModel(stateSpace);
             return ResponseEntity.status(HttpStatus.ACCEPTED).build();
@@ -26,10 +24,8 @@ public class RestController {
     }
 
     @PostMapping("kalmanfilter/getEstimateTimeSeries")
-    public ResponseEntity runFilter(double[][] measurements) throws KalmanFilterException {
-        MeasurementSet measurementSet = new MeasurementSet();
-        measurementSet.setOutputMeasurements(measurements);
-        EstimateTimeSeries filterOutput = linearKF.filter(measurementSet);
+    public ResponseEntity runFilter(MeasurementSet measurements) throws KalmanFilterException {
+        EstimateTimeSeries filterOutput = linearKF.filter(measurements);
         return ResponseEntity.status(HttpStatus.OK).body(filterOutput);
     }
 
