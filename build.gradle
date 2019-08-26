@@ -8,8 +8,6 @@ apply plugin: 'io.spring.dependency-management'
 group 'linear-kalman-filter'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
-
 ext {
     set('springVersion', 'Greenwich.RELEASE')
 }

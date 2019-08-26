@@ -1,14 +1,14 @@
 package kalmanfilter;
 
-public class Double2DArray {
+class Double2DArray {
 
-    private double[][] array;
+    private final double[][] array;
 
-    public Double2DArray(double[][] array){
+    Double2DArray(double[][] array){
         this.array = array;
     }
 
-    public double[][] getPrimitiveArray(){
+    double[][] getPrimitiveArray(){
         return this.array;
     }
 }

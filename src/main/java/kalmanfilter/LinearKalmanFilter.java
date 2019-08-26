@@ -4,11 +4,11 @@ import org.ejml.simple.SimpleMatrix;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LinearKalmanFilter {
+class LinearKalmanFilter {
 
-    StateSpace systemModel;
+    private StateSpace systemModel;
 
-    public EstimateTimeSeries filter(MeasurementSet measurements) throws KalmanFilterException {
+    EstimateTimeSeries filter(MeasurementSet measurements) throws KalmanFilterException {
 
         checkAllFieldsInitialized();
         double outputPrediction;
@@ -62,11 +62,11 @@ public class LinearKalmanFilter {
         }
     }
 
-    public void setSystemModel(StateSpace systemModel) {
+    void setSystemModel(StateSpace systemModel) {
         this.systemModel = systemModel;
     }
 
-    public EstimateTimeSeries getStateEstimateTimeSeries(){
+    private EstimateTimeSeries getStateEstimateTimeSeries(){
         return this.systemModel.getStateHistory();
     }
 

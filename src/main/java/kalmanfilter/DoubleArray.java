@@ -1,14 +1,14 @@
 package kalmanfilter;
 
-public class DoubleArray {
+class DoubleArray {
 
-    private double[] array;
+    private final double[] array;
 
-    public DoubleArray(double[] array){
+    DoubleArray(double[] array){
         this.array = array;
     }
 
-    public double[] getPrimitiveArray(){
+    double[] getPrimitiveArray(){
         return this.array;
     }
 }

@@ -1,12 +1,12 @@
 package kalmanfilter;
 
-public class KalmanFilterException extends Exception {
+class KalmanFilterException extends Exception {
 
-    public KalmanFilterException(){
+    KalmanFilterException(){
         super();
     }
 
-    public KalmanFilterException(String message){
+    KalmanFilterException(String message){
         super(message);
     }
 }

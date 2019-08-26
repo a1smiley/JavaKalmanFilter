@@ -1,4 +1,4 @@
 package kalmanfilter;
 
-public class NoiseModel {
+class NoiseModel {
 }
