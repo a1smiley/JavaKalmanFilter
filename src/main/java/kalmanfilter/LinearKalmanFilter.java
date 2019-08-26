@@ -1,3 +1,5 @@
+package kalmanfilter;
+
 import org.ejml.simple.SimpleMatrix;
 import org.springframework.stereotype.Component;
 
@@ -7,10 +9,11 @@ public class LinearKalmanFilter {
     StateSpace systemModel;
 
     public EstimateTimeSeries filter(MeasurementSet measurements) throws KalmanFilterException {
-        checkAllFieldsInitialized();
 
+        checkAllFieldsInitialized();
         double outputPrediction;
         SimpleMatrix gainMatrix;
+
         for (int i = 0; i < measurements.duration; i++){
             double input = measurements.getInputMeasurement(i);
             generateStatePrediction(input);
@@ -21,6 +24,7 @@ public class LinearKalmanFilter {
             generateCovarianceEstimate(gainMatrix);
             incrementTimeStep();
         }
+
         return getStateEstimateTimeSeries();
     }
 

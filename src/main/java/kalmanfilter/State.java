@@ -1,14 +1,16 @@
+package kalmanfilter;
+
 import lombok.Getter;
 import org.ejml.simple.SimpleMatrix;
 
 @Getter
 public class State {
-    private int timeStep = 0;
     private double[] statePrediction;
     private double[] stateEstimate;
     private double[][] covariancePrediction;
     private double[][] covarianceEstimate;
-    private EstimateTimeSeries stateHistory;
+    private int timeStep = 0;
+    private EstimateTimeSeries stateHistory = new EstimateTimeSeries();
 
     public State(double[] initialState, double[][] initialCovariance) {
         this.statePrediction = initialState;
@@ -37,8 +39,8 @@ public class State {
 
     public void updateCovariancePrediction(SimpleMatrix newCovPrediction) throws KalmanFilterException {
         if (noCovPredictionStoredForCurrentTimeStep()) {
-            this.covariancePrediction = newCovPrediction;
-            stateHistory.storeCovariancePrediction(timeStep, new Double2DArray(newCovPrediction));
+            this.covariancePrediction = getPrimitive2DArray(newCovPrediction);
+            stateHistory.storeCovariancePrediction(timeStep, new Double2DArray(this.covariancePrediction));
         } else {
             throw new KalmanFilterException();
         }
@@ -46,8 +48,8 @@ public class State {
 
     public void updateCovarianceEstimate(SimpleMatrix newCovEstimate) throws KalmanFilterException {
         if (noCovEstimateStoredForCurrentTimeStep()) {
-            this.covarianceEstimate = newCovEstimate;
-            stateHistory.storeCovarianceEstimate(timeStep, new Double2DArray(newCovEstimate));
+            this.covarianceEstimate = getPrimitive2DArray(newCovEstimate);
+            stateHistory.storeCovarianceEstimate(timeStep, new Double2DArray(this.covarianceEstimate));
         } else {
             throw new KalmanFilterException();
         }
@@ -55,6 +57,24 @@ public class State {
 
     public void incrementTimeStep() {
         timeStep++;
+    }
+
+    private boolean noPredictionStoredForCurrentTimeStep() {
+        try {
+            stateHistory.getStatePrediction(this.timeStep);
+            return false;
+        } catch (NullPointerException e) {
+            return true;
+        }
+    }
+
+    private boolean noEstimateStoredForCurrentTimeStep() {
+        try {
+            stateHistory.getStateEstimate(this.timeStep);
+            return false;
+        } catch (NullPointerException e) {
+            return true;
+        }
     }
 
     private boolean noCovPredictionStoredForCurrentTimeStep() {
@@ -75,22 +95,17 @@ public class State {
         }
     }
 
-    private boolean noPredictionStoredForCurrentTimeStep() {
-        try {
-            stateHistory.getStatePrediction(this.timeStep);
-            return false;
-        } catch (NullPointerException e) {
-            return true;
+    private double[][] getPrimitive2DArray(SimpleMatrix simpleMatrix) {
+        int nCols = simpleMatrix.numCols();
+        int nRows = simpleMatrix.numRows();
+        double[] primitive1DArray = simpleMatrix.getMatrix().getData();
+        double[][] primitive2DArray = new double[nCols][nRows];
+        for (int i = 0; i < nCols; i++) {
+            for (int j = 0; j < nRows; j++) {
+                primitive2DArray[i][j] = primitive1DArray[ i*nCols + j];
+            }
         }
-    }
-
-    private boolean noEstimateStoredForCurrentTimeStep() {
-        try {
-            stateHistory.getStateEstimate(this.timeStep);
-            return false;
-        } catch (NullPointerException e) {
-            return true;
-        }
+        return primitive2DArray;
     }
 
 }

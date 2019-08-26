@@ -1,3 +1,5 @@
+package kalmanfilter;
+
 public class Double2DArray {
 
     private double[][] array;

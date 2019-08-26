@@ -1,3 +1,5 @@
+package kalmanfilter;
+
 public class MeasurementSet {
 
     protected int duration;

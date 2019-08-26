@@ -1,3 +1,5 @@
+package kalmanfilter;
+
 public class KalmanFilterException extends Exception {
 
     public KalmanFilterException(){

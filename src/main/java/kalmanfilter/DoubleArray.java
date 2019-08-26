@@ -1,3 +1,5 @@
+package kalmanfilter;
+
 public class DoubleArray {
 
     private double[] array;
