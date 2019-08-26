@@ -40,11 +40,11 @@ public class LinearKalmanFilter {
         return systemModel.generateKalmanGainMatrix();
     }
 
-    private void generateStateEstimate(double outputPrediction, double[] gainMatrix) throws KalmanFilterException{
+    private void generateStateEstimate(double outputPrediction, SimpleMatrix gainMatrix) throws KalmanFilterException{
         systemModel.updateStateEstimate(outputPrediction, gainMatrix);
     }
 
-    private void generateCovarianceEstimate(double[] gainMatrix){
+    private void generateCovarianceEstimate(SimpleMatrix gainMatrix) throws KalmanFilterException{
         systemModel.updateCovarianceEstimate(gainMatrix);
     }
 
