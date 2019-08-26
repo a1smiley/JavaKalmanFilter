@@ -23,6 +23,9 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.6")
 
     compile "org.springframework.boot:spring-boot-starter-web"
+    compile "org.ejml:core:0.30"
+    compile "org.ejml:ejml-fdense:0.38"
+    compile "org.ejml:simple:0.30"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

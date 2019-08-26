@@ -1,3 +1,4 @@
+import org.ejml.simple.SimpleMatrix;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -9,7 +10,7 @@ public class LinearKalmanFilter {
         checkAllFieldsInitialized();
 
         double outputPrediction;
-        double[] gainMatrix;
+        SimpleMatrix gainMatrix;
         for (int i = 0; i < measurements.duration; i++){
             double input = measurements.getInputMeasurement(i);
             generateStatePrediction(input);
@@ -35,7 +36,7 @@ public class LinearKalmanFilter {
         return systemModel.generateOutputPrediction(input);
     }
 
-    private double[] generateKalmanGainMatrix(){
+    private SimpleMatrix generateKalmanGainMatrix(){
         return systemModel.generateKalmanGainMatrix();
     }
 

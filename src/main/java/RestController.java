@@ -10,12 +10,14 @@ public class RestController {
     LinearKalmanFilter linearKF;
 
     @PutMapping("kalmanfilter/setup")
-    public ResponseEntity kalmanFilterSetup(double[] stateTransitionPoles, double[] stateTransitionB,
-                                            double[] outputTransitionC, double ouputTransitionD, double[] initialState,
-                                            double[][] initialCovariance) {
+    public ResponseEntity kalmanFilterSetup(double[] stateTransitionPoles, double[][] stateTransitionB,
+                                            double[][] outputTransitionC, double ouputTransitionD,
+                                            double[][] processNoise, double[][] measurementNoise,
+                                            double[] initialState, double[][] initialCovariance) {
         try {
             State state = new State(initialState, initialCovariance);
-            StateSpace stateSpace = new StateSpace(stateTransitionPoles, stateTransitionB, outputTransitionC, ouputTransitionD, state);
+            StateSpace stateSpace = new StateSpace(stateTransitionPoles, stateTransitionB, outputTransitionC, ouputTransitionD,
+                    processNoise, measurementNoise, state);
             linearKF.setSystemModel(stateSpace);
             return ResponseEntity.status(HttpStatus.ACCEPTED).build();
         } catch (KalmanFilterException e) {

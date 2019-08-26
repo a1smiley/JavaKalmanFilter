@@ -1,4 +1,5 @@
 import lombok.Getter;
+import org.ejml.simple.SimpleMatrix;
 
 @Getter
 public class State {
@@ -34,7 +35,7 @@ public class State {
         }
     }
 
-    public void updateCovariancePrediction(double[][] newCovPrediction) throws KalmanFilterException {
+    public void updateCovariancePrediction(SimpleMatrix newCovPrediction) throws KalmanFilterException {
         if (noCovPredictionStoredForCurrentTimeStep()) {
             this.covariancePrediction = newCovPrediction;
             stateHistory.storeCovariancePrediction(timeStep, new Double2DArray(newCovPrediction));
@@ -43,7 +44,7 @@ public class State {
         }
     }
 
-    public void updateCovarianceEstimate(double[][] newCovEstimate) throws KalmanFilterException {
+    public void updateCovarianceEstimate(SimpleMatrix newCovEstimate) throws KalmanFilterException {
         if (noCovEstimateStoredForCurrentTimeStep()) {
             this.covarianceEstimate = newCovEstimate;
             stateHistory.storeCovarianceEstimate(timeStep, new Double2DArray(newCovEstimate));
