@@ -26,10 +26,11 @@ class StateSpace {
     }
 
     void updateStatePrediction(double input) throws KalmanFilterException {
+
         double[] stateEstimate = state.getStateEstimate();
         double[] newStatePrediction = new double[nPoles];
         for (int i = 0; i < nPoles; i++){
-            newStatePrediction[i] = Amat.get( i, i) * stateEstimate[i] + Bmat.get( i, 1) * input;
+            newStatePrediction[i] = Amat.get( i, i) * stateEstimate[i] + Bmat.get( i, 0) * input;
         }
         state.updateStatePrediction(newStatePrediction);
     }
@@ -44,7 +45,7 @@ class StateSpace {
         double[] statePrediction = state.getStatePrediction();
         double newOutputPrediction = 0;
         for (int i = 0; i < nPoles; i++){
-            newOutputPrediction = newOutputPrediction + (Cmat.get(1, i) * statePrediction[i]);
+            newOutputPrediction = newOutputPrediction + (Cmat.get(0, i) * statePrediction[i]);
         }
         return newOutputPrediction + Dmat * input;
     }
@@ -56,11 +57,11 @@ class StateSpace {
         return matrixMultiply(leadingTerm, trailingTerm);
     }
 
-    void updateStateEstimate(double outputPrediction, SimpleMatrix gainMatrix) throws KalmanFilterException{
+    void updateStateEstimate(double innovation, SimpleMatrix gainMatrix) throws KalmanFilterException{
         double[] newStateEstimate = new double[nPoles];
         double[] statePrediction = state.getStatePrediction();
         for (int i = 0; i < nPoles; i++){
-            newStateEstimate[i] = statePrediction[i] + (gainMatrix.get(1, i) * outputPrediction);
+            newStateEstimate[i] = statePrediction[i] + (gainMatrix.get(0, i) * innovation);
         }
         state.updateStateEstimate(newStateEstimate);
     }

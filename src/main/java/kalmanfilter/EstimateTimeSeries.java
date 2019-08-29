@@ -1,7 +1,10 @@
 package kalmanfilter;
 
+import lombok.Getter;
+
 import java.util.HashMap;
 
+@Getter
 class EstimateTimeSeries {
     private final HashMap<Integer, DoubleArray> statePredictionHistory = new HashMap<>();
     private final HashMap<Integer, DoubleArray> stateEstimateHistory = new HashMap<>();

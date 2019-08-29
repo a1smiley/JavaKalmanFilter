@@ -60,38 +60,34 @@ class State {
     }
 
     private boolean noPredictionStoredForCurrentTimeStep() {
-        try {
-            stateHistory.getStatePrediction(this.timeStep);
-            return false;
-        } catch (NullPointerException e) {
+        if (stateHistory.getStatePrediction(this.timeStep) == null) {
             return true;
+        } else {
+            return false;
         }
     }
 
     private boolean noEstimateStoredForCurrentTimeStep() {
-        try {
-            stateHistory.getStateEstimate(this.timeStep);
-            return false;
-        } catch (NullPointerException e) {
+        if (stateHistory.getStateEstimate(this.timeStep) == null) {
             return true;
+        } else {
+            return false;
         }
     }
 
     private boolean noCovPredictionStoredForCurrentTimeStep() {
-        try {
-            stateHistory.getCovariancePrediction(this.timeStep);
-            return false;
-        } catch (NullPointerException e) {
+        if (stateHistory.getCovariancePrediction(this.timeStep) == null) {
             return true;
+        } else {
+            return false;
         }
     }
 
     private boolean noCovEstimateStoredForCurrentTimeStep() {
-        try {
-            stateHistory.getCovarianceEstimate(this.timeStep);
-            return false;
-        } catch (NullPointerException e) {
+        if (stateHistory.getCovarianceEstimate(this.timeStep) == null) {
             return true;
+        } else {
+            return false;
         }
     }
 
@@ -104,7 +100,7 @@ class State {
         for (int i = 0; i < nCols; i++) {
             //noinspection ManualArrayCopy
             for (int j = 0; j < nRows; j++) {
-                primitive2DArray[i][j] = primitive1DArray[ i*nCols + j];
+                primitive2DArray[i][j] = primitive1DArray[i * nCols + j];
             }
         }
         return primitive2DArray;

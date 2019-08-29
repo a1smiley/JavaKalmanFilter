@@ -14,13 +14,15 @@ class LinearKalmanFilter {
         double outputPrediction;
         SimpleMatrix gainMatrix;
 
-        for (int i = 0; i < measurements.duration; i++){
-            double input = measurements.getInputMeasurement(i);
-            generateStatePrediction(input);
+        for (int i = 0; i < measurements.getDuration()-1; i++){
+            double previousInput = measurements.getInputMeasurement(i);
+            double currentInput = measurements.getInputMeasurement(i+1);
+            generateStatePrediction(previousInput);
             generateCovariancePrediction();
-            outputPrediction = generateOutputPrediction(input);
+            outputPrediction = generateOutputPrediction(currentInput);
             gainMatrix = generateKalmanGainMatrix();
-            generateStateEstimate(outputPrediction, gainMatrix);
+            double innovation = calculateInnovation(measurements.getOutputMeasurement(i+1), outputPrediction);
+            generateStateEstimate(innovation, gainMatrix);
             generateCovarianceEstimate(gainMatrix);
             incrementTimeStep();
         }
@@ -42,6 +44,10 @@ class LinearKalmanFilter {
 
     private SimpleMatrix generateKalmanGainMatrix(){
         return systemModel.generateKalmanGainMatrix();
+    }
+
+    private double calculateInnovation(double measurement, double estimate) {
+        return measurement - estimate;
     }
 
     private void generateStateEstimate(double outputPrediction, SimpleMatrix gainMatrix) throws KalmanFilterException{

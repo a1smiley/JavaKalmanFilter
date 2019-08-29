@@ -1,26 +1,39 @@
 package kalmanfilter;
 
-class MeasurementSet {
+import lombok.Getter;
 
-    int duration;
-    private double[] validatedInputMeasurements;
-    private double[] validatedOutputMeasurements;
+import java.util.Arrays;
 
-    MeasurementSet() {}
+public class MeasurementSet {
 
-    void setInputMeasurements(double[] unvalidatedInputMeasurements){
-        this.validatedInputMeasurements = unvalidatedInputMeasurements;
+    @Getter
+    private int duration;
+    private double[] inputMeasurements;
+    private double[] outputMeasurements;
+
+    MeasurementSet(double[] inputMeasurements, double[] outputMeasurements) {
+        System.out.println("Input measurement array is: " + Arrays.toString(inputMeasurements));
+        System.out.println("Output measurement array is: " + Arrays.toString(outputMeasurements));
+        if (inputMeasurements.length == outputMeasurements.length) {
+            this.inputMeasurements = inputMeasurements;
+            this.outputMeasurements = outputMeasurements;
+            this.duration = inputMeasurements.length;
+        }
     }
 
-    void setOutputMeasurements(double[] unvalidatedOutputMeasurements) {
-        this.validatedOutputMeasurements =  unvalidatedOutputMeasurements;
+    void setInputMeasurements(double[] inputMeasurements){
+        this.inputMeasurements = inputMeasurements;
+    }
+
+    void setOutputMeasurements(double[] outputMeasurements) {
+        this.outputMeasurements =  outputMeasurements;
     }
 
     double getInputMeasurement(int timeStep) {
-        return validatedInputMeasurements[timeStep];
+        return inputMeasurements[timeStep];
     }
 
     double getOutputMeasurement(int timeStep) {
-        return validatedOutputMeasurements[timeStep];
+        return outputMeasurements[timeStep];
     }
 }

@@ -1,6 +1,6 @@
 package kalmanfilter;
 
-class KalmanFilterException extends Exception {
+public class KalmanFilterException extends Exception {
 
     KalmanFilterException(){
         super();

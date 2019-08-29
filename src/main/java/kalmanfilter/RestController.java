@@ -5,30 +5,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @org.springframework.web.bind.annotation.RestController
-class RestController {
+public class RestController {
     @Autowired
     LinearKalmanFilter linearKF;
 
-    @PutMapping("kalmanfilter/setup")
-    public ResponseEntity kalmanFilterSetup(double[] stateTransitionPoles, double[][] stateTransitionB,
-                                            double[][] outputTransitionC, double ouputTransitionD,
-                                            double[][] processNoise, double[][] measurementNoise,
-                                            double[] initialState, double[][] initialCovariance) {
+    @PutMapping(path = "kalmanfilter/setup")
+    public ResponseEntity<String> kalmanFilterSetup(@RequestBody StateSpaceDTO input) {
         try {
-            State state = new State(initialState, initialCovariance);
-            StateSpace stateSpace = new StateSpace(stateTransitionPoles, stateTransitionB, outputTransitionC, ouputTransitionD,
-                    processNoise, measurementNoise, state);
+            State state = new State(input.initialState, input.initialCovariance);
+            StateSpace stateSpace = new StateSpace(input.stateTransitionPoles, input.stateTransitionB,
+                    input.outputTransitionC, input.ouputTransitionD, input.processNoise, input.measurementNoise,
+                    state);
             linearKF.setSystemModel(stateSpace);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("Success");
         } catch (KalmanFilterException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
     @PostMapping("kalmanfilter/getEstimateTimeSeries")
-    public ResponseEntity runFilter(MeasurementSet measurements) throws KalmanFilterException {
+    public ResponseEntity<EstimateTimeSeries> runFilter(@RequestBody MeasurementSet measurements) throws KalmanFilterException {
         EstimateTimeSeries filterOutput = linearKF.filter(measurements);
         return ResponseEntity.status(HttpStatus.OK).body(filterOutput);
     }
