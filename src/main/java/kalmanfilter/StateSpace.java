@@ -7,16 +7,16 @@ class StateSpace {
     private SimpleMatrix Amat;
     private SimpleMatrix Bmat;
     private SimpleMatrix Cmat;
-    private double Dmat;
+    private SimpleMatrix Dmat;
     private SimpleMatrix processNoise;
     private SimpleMatrix measurementNoise;
     private State state;
     private int nPoles;
 
-    StateSpace(double[] stateTransitionPoles, double[][] stateTransitionB,
-                      double[][] outputTransitionC, double outputTransitionD, double[][] processNoise,
+    StateSpace(double[][] stateTransitionA, double[][] stateTransitionB,
+                      double[][] outputTransitionC, double[][] outputTransitionD, double[][] processNoise,
                       double[][] measurementNoise, State state) throws KalmanFilterException {
-        this.Amat = expandPolesToStateTransitionMatrix(stateTransitionPoles);
+        this.Amat = validateAmat(stateTransitionA);
         this.Bmat = validateBmat(stateTransitionB);
         this.Cmat = validateCmat(outputTransitionC);
         this.Dmat = validateDmat(outputTransitionD);
@@ -25,12 +25,21 @@ class StateSpace {
         this.state = state;
     }
 
-    void updateStatePrediction(double input) throws KalmanFilterException {
+    void updateStatePrediction(double[] input) throws KalmanFilterException {
+        SimpleMatrix stateTransitionRow;
+        SimpleMatrix stateInputRow;
+        SimpleMatrix unforcedResponse;
+        SimpleMatrix forcedResponse;
 
-        double[] stateEstimate = state.getStateEstimate();
+        SimpleMatrix stateEstimate = buildRowArrayAsSimpleMatrix(state.getStateEstimate());
+        SimpleMatrix inputMat = buildRowArrayAsSimpleMatrix(input);
         double[] newStatePrediction = new double[nPoles];
         for (int i = 0; i < nPoles; i++){
-            newStatePrediction[i] = Amat.get( i, i) * stateEstimate[i] + Bmat.get( i, 0) * input;
+            stateTransitionRow = Amat.extractVector(true, i);
+            stateInputRow = Bmat.extractVector(true, i);
+            unforcedResponse = matrixMultiply(stateTransitionRow, stateEstimate);
+            forcedResponse = matrixMultiply(stateInputRow, inputMat);
+            newStatePrediction[i] = matrixSum(unforcedResponse, forcedResponse).get(0);
         }
         state.updateStatePrediction(newStatePrediction);
     }
@@ -41,13 +50,23 @@ class StateSpace {
         state.updateCovariancePrediction(newCovPrediction);
     }
 
-    double generateOutputPrediction(double input) {
-        double[] statePrediction = state.getStatePrediction();
-        double newOutputPrediction = 0;
+    double[] generateOutputPrediction(double[] input) {
+        SimpleMatrix outputTransitionRow;
+        SimpleMatrix inputFeedthroughRow;
+        SimpleMatrix stateDrivenOutput;
+        SimpleMatrix inputFeedthroughOutput;
+
+        SimpleMatrix inputMat = buildRowArrayAsSimpleMatrix(input);
+        SimpleMatrix statePrediction = buildRowArrayAsSimpleMatrix(state.getStatePrediction());
+        double[] newOutputPrediction = new double[Cmat.numRows()];
         for (int i = 0; i < nPoles; i++){
-            newOutputPrediction = newOutputPrediction + (Cmat.get(0, i) * statePrediction[i]);
+            outputTransitionRow = Cmat.extractVector(true, i);
+            inputFeedthroughRow = Dmat.extractVector(true, i);
+            stateDrivenOutput = matrixMultiply(outputTransitionRow, statePrediction);
+            inputFeedthroughOutput = matrixMultiply(inputFeedthroughRow, inputMat);
+            newOutputPrediction[i] = matrixSum(stateDrivenOutput, inputFeedthroughOutput).get(0);
         }
-        return newOutputPrediction + Dmat * input;
+        return newOutputPrediction;
     }
 
     SimpleMatrix generateKalmanGainMatrix(){
@@ -57,13 +76,11 @@ class StateSpace {
         return matrixMultiply(leadingTerm, trailingTerm);
     }
 
-    void updateStateEstimate(double innovation, SimpleMatrix gainMatrix) throws KalmanFilterException{
-        double[] newStateEstimate = new double[nPoles];
-        double[] statePrediction = state.getStatePrediction();
-        for (int i = 0; i < nPoles; i++){
-            newStateEstimate[i] = statePrediction[i] + (gainMatrix.get(0, i) * innovation);
-        }
-        state.updateStateEstimate(newStateEstimate);
+    void updateStateEstimate(double[] innovation, SimpleMatrix gainMatrix) throws KalmanFilterException{
+        SimpleMatrix statePrediction = buildRowArrayAsSimpleMatrix(state.getStatePrediction());
+        SimpleMatrix innovationMat = buildRowArrayAsSimpleMatrix(innovation);
+        SimpleMatrix newStateEstimate = matrixSum(statePrediction, matrixMultiply(gainMatrix, innovationMat));
+        state.updateStateEstimate(newStateEstimate.getMatrix().getData());
     }
 
     void updateCovarianceEstimate(SimpleMatrix gainMatrix) throws KalmanFilterException {
@@ -104,19 +121,18 @@ class StateSpace {
        return SimpleMatrix.identity(size);
     }
 
-    private SimpleMatrix expandPolesToStateTransitionMatrix(double[] poles){
-        nPoles = poles.length;
-        double[][] transitionMatrix = new double[nPoles][nPoles];
-        for (int i = 0; i < nPoles; i++){
-            for (int j = 0; j < nPoles; j++) {
-                if (j == i) {
-                    transitionMatrix[i][j] = poles[i];
-                } else {
-                    transitionMatrix[i][j] = 0;
-                }
-            }
+    private SimpleMatrix buildRowArrayAsSimpleMatrix(double[] array) {
+        return new SimpleMatrix(array.length, 1, false, array);
+    }
+
+    private SimpleMatrix validateAmat(double[][] unvalidatedAmat) throws KalmanFilterException {
+        SimpleMatrix Amatrix = new SimpleMatrix(unvalidatedAmat);
+        if (Amatrix.numCols() == Amatrix.numRows()) {
+            nPoles = Amatrix.numCols();
+            return Amatrix;
+        } else {
+            throw new KalmanFilterException("A matrix must be square.");
         }
-        return new SimpleMatrix(transitionMatrix);
     }
 
     private SimpleMatrix validateBmat(double[][] unvalidatedBmat) throws KalmanFilterException {
@@ -143,15 +159,34 @@ class StateSpace {
         }
     }
 
-    private double validateDmat(double unvalidatedDmat) throws KalmanFilterException {
-        int nElementsD = 1;  // For now, Dmat and number of outputs columns for Cmat constrained to be of size 1, but expect to change on future update
-        int nOutputColsC = 1;
-        if (nElementsD == nOutputColsC){
-            return unvalidatedDmat;
+    private SimpleMatrix validateDmat(double[][] unvalidatedDmat) throws KalmanFilterException {
+        SimpleMatrix Dmatrix = new SimpleMatrix(unvalidatedDmat);
+        Dmatrix = validateDmatInputSize(Dmatrix);
+        Dmatrix = validateDmatOutputSize(Dmatrix);
+        return Dmatrix;
+    }
+
+    private SimpleMatrix validateDmatInputSize(SimpleMatrix Dmatrix) throws KalmanFilterException {
+        int nColsD = Dmatrix.numCols();
+        int nInputColsB = Bmat.numCols();
+        if (nColsD == nInputColsB){
+            return Dmatrix;
         } else {
-            throw new KalmanFilterException("Dimensions of D matrix incompatible with dimensions of C matrix \n"
-                    + "Output dimension of C matrix: " + nOutputColsC +"\n"
-                    + "Dimension of D matrix: " + nElementsD + "\n");
+            throw new KalmanFilterException("Dimensions of D matrix incompatible with input dimensions of B matrix \n"
+                    + "Input dimension of B matrix: " + nInputColsB +"\n"
+                    + "Input dimension of D matrix: " + nColsD + "\n");
+        }
+    }
+
+    private SimpleMatrix validateDmatOutputSize(SimpleMatrix Dmatrix) throws KalmanFilterException {
+        int nRowsD = Dmatrix.numRows();
+        int nOutputRowsC = Cmat.numRows();
+        if (nRowsD == nOutputRowsC){
+            return Dmatrix;
+        } else {
+            throw new KalmanFilterException("Dimensions of D matrix incompatible with output dimensions of C matrix \n"
+                    + "Output dimension of C matrix: " + nOutputRowsC +"\n"
+                    + "Output dimension of D matrix: " + nRowsD + "\n");
         }
     }
 
@@ -170,14 +205,32 @@ class StateSpace {
 
     private SimpleMatrix validateMeasurementNoise(double[][] unvalidatedMeasurementNoise) throws KalmanFilterException{
         SimpleMatrix measurementNoise = new SimpleMatrix(unvalidatedMeasurementNoise);
+        measurementNoise = validateMeasurementNoiseIsSquare(measurementNoise);
+        measurementNoise = validateMeasurementNoiseOutputDimension(measurementNoise);
+        return measurementNoise;
+    }
+
+    private SimpleMatrix validateMeasurementNoiseIsSquare(SimpleMatrix measurementNoise) throws KalmanFilterException{
         int nRows = measurementNoise.numRows();
         int nCols = measurementNoise.numCols();
-        if (nRows == nCols && nRows == nPoles){
+        if (nRows == nCols){
             return measurementNoise;
         } else {
-            throw new KalmanFilterException("Dimensions of measurement noise matrix incompatible with dimensions of A matrix \n"
-                    + "Square dimension of A matrix: " + nPoles +"\n"
-                    + "Square dimension of measurement noise matrix: " + nCols + "\n");
+            throw new KalmanFilterException("Dimensions of measurement noise matrix not square \n"
+                    + "Row dimension of measurement noise: " + nRows +"\n"
+                    + "Column dimension of measurement noise: " + nCols + "\n");
+        }
+    }
+
+    private SimpleMatrix validateMeasurementNoiseOutputDimension(SimpleMatrix measurementNoise) throws KalmanFilterException{
+        int nRows = measurementNoise.numRows();
+        int outputRowsD = Dmat.numRows();
+        if (nRows == outputRowsD){
+            return measurementNoise;
+        } else {
+            throw new KalmanFilterException("Dimensions of measurement noise matrix incompatible with dimensions of D matrix \n"
+                    + "Output dimension of D matrix: " + outputRowsD +"\n"
+                    + "Square dimension of measurement noise matrix: " + nRows + "\n");
         }
     }
 

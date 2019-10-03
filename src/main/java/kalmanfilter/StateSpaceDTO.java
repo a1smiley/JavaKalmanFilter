@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class StateSpaceDTO {
-    double[] stateTransitionPoles;
+    double[][] stateTransitionA;
     double[][] stateTransitionB;
     double[][] outputTransitionC;
-    double ouputTransitionD;
+    double[][] outputTransitionD;
     double[][] processNoise;
     double[][] measurementNoise;
     double[] initialState;

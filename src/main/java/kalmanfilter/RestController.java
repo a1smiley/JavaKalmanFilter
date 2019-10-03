@@ -17,8 +17,8 @@ public class RestController {
     public ResponseEntity<String> kalmanFilterSetup(@RequestBody StateSpaceDTO input) {
         try {
             State state = new State(input.initialState, input.initialCovariance);
-            StateSpace stateSpace = new StateSpace(input.stateTransitionPoles, input.stateTransitionB,
-                    input.outputTransitionC, input.ouputTransitionD, input.processNoise, input.measurementNoise,
+            StateSpace stateSpace = new StateSpace(input.stateTransitionA, input.stateTransitionB,
+                    input.outputTransitionC, input.outputTransitionD, input.processNoise, input.measurementNoise,
                     state);
             linearKF.setSystemModel(stateSpace);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Success");

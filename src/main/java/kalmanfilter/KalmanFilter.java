@@ -4,24 +4,23 @@ import org.ejml.simple.SimpleMatrix;
 import org.springframework.stereotype.Component;
 
 @Component
-class LinearKalmanFilter {
+class KalmanFilter {
 
     private StateSpace systemModel;
 
     EstimateTimeSeries filter(MeasurementSet measurements) throws KalmanFilterException {
-
-        checkAllFieldsInitialized();
-        double outputPrediction;
+        double[] outputPrediction;
         SimpleMatrix gainMatrix;
 
+        checkAllFieldsInitialized();
         for (int i = 0; i < measurements.getDuration()-1; i++){
-            double previousInput = measurements.getInputMeasurement(i);
-            double currentInput = measurements.getInputMeasurement(i+1);
+            double[] previousInput = measurements.getInputMeasurement(i);
+            double[] currentInput = measurements.getInputMeasurement(i+1);
             generateStatePrediction(previousInput);
             generateCovariancePrediction();
             outputPrediction = generateOutputPrediction(currentInput);
             gainMatrix = generateKalmanGainMatrix();
-            double innovation = calculateInnovation(measurements.getOutputMeasurement(i+1), outputPrediction);
+            double[] innovation = calculateInnovation(measurements.getOutputMeasurement(i+1), outputPrediction);
             generateStateEstimate(innovation, gainMatrix);
             generateCovarianceEstimate(gainMatrix);
             incrementTimeStep();
@@ -30,7 +29,7 @@ class LinearKalmanFilter {
         return getStateEstimateTimeSeries();
     }
 
-    private void generateStatePrediction(double input) throws KalmanFilterException {
+    private void generateStatePrediction(double[] input) throws KalmanFilterException {
         systemModel.updateStatePrediction(input);
     }
 
@@ -38,7 +37,7 @@ class LinearKalmanFilter {
         systemModel.updateCovariancePrediction();
     }
 
-    private double generateOutputPrediction(double input) {
+    private double[] generateOutputPrediction(double[] input) {
         return systemModel.generateOutputPrediction(input);
     }
 
@@ -46,11 +45,15 @@ class LinearKalmanFilter {
         return systemModel.generateKalmanGainMatrix();
     }
 
-    private double calculateInnovation(double measurement, double estimate) {
-        return measurement - estimate;
+    private double[] calculateInnovation(double[] measurement, double[] estimate) {
+        double[] innovation = new double[measurement.length];
+        for (int i = 0; i < measurement.length; i++) {
+            innovation[i] = measurement[i] - estimate[i];
+        }
+        return innovation;
     }
 
-    private void generateStateEstimate(double outputPrediction, SimpleMatrix gainMatrix) throws KalmanFilterException{
+    private void generateStateEstimate(double[] outputPrediction, SimpleMatrix gainMatrix) throws KalmanFilterException{
         systemModel.updateStateEstimate(outputPrediction, gainMatrix);
     }
 
