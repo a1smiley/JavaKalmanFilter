@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'org.springframework.boot' version '2.1.6.RELEASE'
+    id 'info.solidsoft.pitest' version '1.4.5'
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -24,6 +25,7 @@ dependencies {
     compile "org.ejml:core:0.30"
     compile "org.ejml:ejml-fdense:0.38"
     compile "org.ejml:simple:0.30"
+    compile "com.google.code.gson:gson:2.8.5"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
