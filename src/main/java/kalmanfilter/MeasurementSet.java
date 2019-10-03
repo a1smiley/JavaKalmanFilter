@@ -1,9 +1,13 @@
 package kalmanfilter;
 
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 
+@Log4j2
 public class MeasurementSet {
     @Getter
     private int duration;
