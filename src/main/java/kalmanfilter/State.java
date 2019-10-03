@@ -17,6 +17,11 @@ class State {
         this.stateEstimate = initialState;
         this.covariancePrediction = initialCovariance;
         this.covarianceEstimate = initialCovariance;
+        stateHistory.storeStatePrediction(timeStep, new DoubleArray(initialState));
+        stateHistory.storeStateEstimate(timeStep, new DoubleArray(initialState));
+        stateHistory.storeCovariancePrediction(timeStep, new Double2DArray(initialCovariance));
+        stateHistory.storeCovarianceEstimate(timeStep, new Double2DArray(initialCovariance));
+        this.incrementTimeStep();
     }
 
     void updateStatePrediction(double[] newStatePrediction) throws KalmanFilterException {
