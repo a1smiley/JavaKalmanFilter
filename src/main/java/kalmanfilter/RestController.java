@@ -20,9 +20,8 @@ public class RestController {
         try {
             State state = new State(input.initialState, input.initialCovariance);
             StateSpace stateSpace = new StateSpace(input.stateTransitionA, input.stateTransitionB,
-                    input.outputTransitionC, input.outputTransitionD, input.processNoise, input.measurementNoise,
-                    state);
-            linearKF.setSystemModel(stateSpace);
+                    input.outputTransitionC, input.outputTransitionD, input.processNoise, input.measurementNoise);
+            linearKF.setSystemModel(stateSpace, state);
             log.info(() -> "Set system model from REST input");
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Success");
         } catch (KalmanFilterException e) {

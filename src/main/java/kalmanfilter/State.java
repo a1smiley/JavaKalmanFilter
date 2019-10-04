@@ -1,99 +1,39 @@
 package kalmanfilter;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.ejml.simple.SimpleMatrix;
 
 @Getter
 class State {
+    @Setter
     private double[] statePrediction;
+    @Setter
     private double[] stateEstimate;
     private double[][] covariancePrediction;
     private double[][] covarianceEstimate;
-    private int timeStep = 0;
-    private final EstimateTimeSeries stateHistory = new EstimateTimeSeries();
 
     State(double[] initialState, double[][] initialCovariance) {
         this.statePrediction = initialState;
         this.stateEstimate = initialState;
         this.covariancePrediction = initialCovariance;
         this.covarianceEstimate = initialCovariance;
-        stateHistory.storeStatePrediction(timeStep, new DoubleArray(initialState));
-        stateHistory.storeStateEstimate(timeStep, new DoubleArray(initialState));
-        stateHistory.storeCovariancePrediction(timeStep, new Double2DArray(initialCovariance));
-        stateHistory.storeCovarianceEstimate(timeStep, new Double2DArray(initialCovariance));
-        this.incrementTimeStep();
     }
 
-    void updateStatePrediction(double[] newStatePrediction) throws KalmanFilterException {
-        if (noPredictionStoredForCurrentTimeStep()) {
-            this.statePrediction = newStatePrediction;
-            stateHistory.storeStatePrediction(timeStep, new DoubleArray(newStatePrediction));
-        } else {
-            throw new KalmanFilterException();
-        }
-    }
-
-    void updateStateEstimate(double[] newStateEstimate) throws KalmanFilterException {
-        if (noEstimateStoredForCurrentTimeStep()) {
-            this.stateEstimate = newStateEstimate;
-            stateHistory.storeStateEstimate(timeStep, new DoubleArray(newStateEstimate));
-        } else {
-            throw new KalmanFilterException();
-        }
-    }
-
-    void updateCovariancePrediction(SimpleMatrix newCovPrediction) throws KalmanFilterException {
-        if (noCovPredictionStoredForCurrentTimeStep()) {
+    void setCovariancePrediction(SimpleMatrix newCovPrediction) {
             this.covariancePrediction = getPrimitive2DArray(newCovPrediction);
-            stateHistory.storeCovariancePrediction(timeStep, new Double2DArray(this.covariancePrediction));
-        } else {
-            throw new KalmanFilterException();
-        }
     }
 
-    void updateCovarianceEstimate(SimpleMatrix newCovEstimate) throws KalmanFilterException {
-        if (noCovEstimateStoredForCurrentTimeStep()) {
-            this.covarianceEstimate = getPrimitive2DArray(newCovEstimate);
-            stateHistory.storeCovarianceEstimate(timeStep, new Double2DArray(this.covarianceEstimate));
-        } else {
-            throw new KalmanFilterException();
-        }
+    void setCovariancePrediction(double[][] newCovPrediction) {
+        this.covariancePrediction = newCovPrediction;
     }
 
-    void incrementTimeStep() {
-        timeStep++;
+    void setCovarianceEstimate(SimpleMatrix newCovEstimate) {
+        this.covarianceEstimate = getPrimitive2DArray(newCovEstimate);
     }
 
-    private boolean noPredictionStoredForCurrentTimeStep() {
-        if (stateHistory.getStatePrediction(this.timeStep) == null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private boolean noEstimateStoredForCurrentTimeStep() {
-        if (stateHistory.getStateEstimate(this.timeStep) == null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private boolean noCovPredictionStoredForCurrentTimeStep() {
-        if (stateHistory.getCovariancePrediction(this.timeStep) == null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private boolean noCovEstimateStoredForCurrentTimeStep() {
-        if (stateHistory.getCovarianceEstimate(this.timeStep) == null) {
-            return true;
-        } else {
-            return false;
-        }
+    void setCovarianceEstimate(double[][] newCovEstimate) {
+        this.covarianceEstimate = newCovEstimate;
     }
 
     private double[][] getPrimitive2DArray(SimpleMatrix simpleMatrix) {
